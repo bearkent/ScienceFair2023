@@ -1,0 +1,12 @@
+numpy
+#tensorflow==0.4.35
+imageai
+scipy
+matplotlib
+IPython
+aplay
+simpleaudio
+sounddevice
+datetime
+scipy
+soundfile
