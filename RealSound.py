@@ -5,8 +5,6 @@ from wave import open
 import matplotlib.pyplot as plt 
 from fix import fix
 
-fix()
-
 def record(duration, freq):
     
     print("recording")
@@ -34,4 +32,5 @@ class Sound:
     
 record(1, 44100).plot()
 
+# prevents the popup plot from deleting itself after creation
 fix()
