@@ -4,6 +4,7 @@ import scipy
 from wave import open
 import matplotlib.pyplot as plt 
 from fix import fix
+from datetime import datetime
 
 def record(duration, freq):
     
@@ -28,9 +29,29 @@ class Sound:
         
         plt.plot(self.xs, self.ys)
         
+    def play(self):
+        
+        print("playing audio")
+        
+        start_time = datetime.now()
+        
+        sd.play(self.ys, self.freq)
+        sd.wait()
+        
+        end_time = datetime.now()
+        print('Duration: {}'.format(end_time - start_time))
+
+class FFT:
+    
+    def __init__(self, Sound, freq, numpyarray):
+        
+        self.Sound = Sound
+        self.freq = freq
+        self.numpyarray = numpyarray
+        
         
     
-record(1, 44100).plot()
+record(3, 44100).play()
 
 # prevents the popup plot from deleting itself after creation
 fix()
