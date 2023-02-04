@@ -13,7 +13,7 @@ def record(duration, freq):
     recording = sd.rec(int(duration * freq), samplerate=freq, channels=1, dtype=float)
     sd.wait()
     
-    return Sound(freq, recording)
+    return PowerSpectrum(freq, recording)
     
 class Sound:
     
@@ -41,17 +41,41 @@ class Sound:
         end_time = datetime.now()
         print('Duration: {}'.format(end_time - start_time))
 
-class FFT:
+class FFT(Sound):
     
-    def __init__(self, Sound, freq, numpyarray):
+    def __init__(self, freq, numpyarray):
         
-        self.Sound = Sound
         self.freq = freq
         self.numpyarray = numpyarray
         
+        self.xs = np.linspace(0, len(numpyarray)/freq, freq)
+        self.ys = numpyarray
+
         
+    def FFT(self):
+        
+        self.xs = np.fft.rfft(self.xs)
+        self.ys = abs(np.fft.rfft(self.ys))
+        
+        return self.xs, self.ys
+        
+class PowerSpectrum(FFT):
     
-record(3, 44100).play()
+    def __init__(self, freq, numpyarray):
+ 
+        self.freq = freq
+        self.numpyarray = numpyarray
+        
+        self.xs = np.linspace(0, len(numpyarray)/freq, freq)
+        self.ys = numpyarray
+        
+    def powerspecturm(self):
+        
+        plt.plot(abs(np.fft.rfft(self.ys)))
+        
+        
+# record(1, 44100).powerspecturm()
+
 
 # prevents the popup plot from deleting itself after creation
 fix()
