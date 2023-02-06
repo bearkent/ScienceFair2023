@@ -10,3 +10,4 @@ sounddevice
 datetime
 scipy
 soundfile
+pydub

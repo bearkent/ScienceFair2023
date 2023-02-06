@@ -5,6 +5,7 @@ from wave import open
 import matplotlib.pyplot as plt 
 from fix import fix
 from datetime import datetime
+import pydub
 
 def record(duration, freq):
     
@@ -15,6 +16,26 @@ def record(duration, freq):
     
     return PowerSpectrum(freq, recording)
     
+def read(freq, file):
+    
+    ifile = open(file)
+    samples = ifile.getnframes()
+    audio = ifile.readframes(samples)
+    
+    # Convert buffer to float32 using NumPy                                                                                 
+    audio_as_np_int16 = np.frombuffer(audio, dtype=np.int16)
+    audio_as_np_float32 = audio_as_np_int16.astype(np.float32)
+    
+    # Normalise float32 array so that values are between -1.0 and +1.0                                                      
+    max_int16 = 2**15
+    audio_normalised = audio_as_np_float32 / max_int16
+    
+    return Sound(freq, audio_normalised)
+
+def sine(hz):
+    
+    
+
 class Sound:
     
     def __init__(self, freq, numpyarray):
@@ -76,6 +97,7 @@ class PowerSpectrum(FFT):
         
 # record(1, 44100).powerspecturm()
 
+read(44100, "audio.wav").play()
 
 # prevents the popup plot from deleting itself after creation
 fix()
