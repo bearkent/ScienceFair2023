@@ -80,15 +80,16 @@ class FFT:
     
     def __init__(self, sound: Sound):
         
+        self.sound = sound
         self.samplingfreq = sound.samplingfreq
-        self.ys =sound.numpyarray
+        self.ys = np.fft.rfft(sound.numpyarray)
         self.xs = np.fft.rfft(np.linspace(0, len(self.ys)/self.samplingfreq, self.samplingfreq))
         
         
     def ifft(self) -> Sound:
         
         self.xs = np.fft.irfft(self.xs)
-        self.ys = abs(np.fft.irfft(self.ys))
+        self.ys = np.fft.irfft(self.ys)
         
         return Sound(self.samplingfreq, self.ys)
     
