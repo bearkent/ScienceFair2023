@@ -116,12 +116,14 @@ class PowerSpectrum:
 
 # read(44100, "audio.wav").play()
 
+fig = plt.figure()
 print(sine(1, 10, 10, 1).ys)
 sine(1, 10, 10, 1).plot()
 fft = sine(1, 10, 10, 1).fft()
 ifft = fft.ifft()
 ifft.plot()
 print(ifft.ys)
+fig.show()
 
 
     
