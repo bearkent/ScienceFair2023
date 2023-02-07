@@ -7,16 +7,16 @@ from fix import fix
 from datetime import datetime
 import pydub
 
-def record(duration, freq):
+def record(duration: float, samplingfreq: int) -> None:
     
     print("recording")
     
-    recording = sd.rec(int(duration * freq), samplerate=freq, channels=1, dtype=float)
+    recording = sd.rec(int(duration * samplingfreq), samplerate=samplingfreq, channels=1, dtype=float)
     sd.wait()
     
-    return PowerSpectrum(freq, recording)
+    return PowerSpectrum(samplingfreq, recording)
     
-def read(freq, file):
+def read(samplingfreq: int, file) -> 'Sound':
     
     ifile = open(file)
     samples = ifile.getnframes()
@@ -30,9 +30,9 @@ def read(freq, file):
     max_int16 = 2**15
     audio_normalised = audio_as_np_float32 / max_int16
     
-    return Sound(freq, audio_normalised)
+    return Sound(samplingfreq, audio_normalised)
 
-def sine(duration, frequency, samplingfreq, amplitude):
+def sine(duration: float, frequency: float, samplingfreq: int, amplitude: float) -> 'Sound':
     
     if samplingfreq==None: samplingfreq=duration*frequency*50
     
@@ -40,7 +40,7 @@ def sine(duration, frequency, samplingfreq, amplitude):
     
     ys = amplitude*np.sin(xs*2*np.pi*frequency)
         
-    return PowerSpectrum(samplingfreq, ys)
+    return Sound(samplingfreq, ys)
     
     
 
@@ -49,69 +49,81 @@ def sine(duration, frequency, samplingfreq, amplitude):
 
 class Sound:
     
-    def __init__(self, samplingfreq, numpyarray):
+    def __init__(self, samplingfreq: int, numpyarray: np.array):
         
-        self.freq = samplingfreq
+        self.samplingfreq = samplingfreq
         self.numpyarray = numpyarray
         
         self.xs = np.linspace(0, len(numpyarray)/samplingfreq, samplingfreq)
         self.ys = numpyarray
         
-    def plot(self):
+    def plot(self) -> None:
         
         plt.plot(self.xs, self.ys)
         
-    def play(self):
+    def play(self) -> None:
         
         print("playing audio")
         
         start_time = datetime.now()
         
-        sd.play(self.ys, self.freq)
+        sd.play(self.ys, self.samplingfreq)
         sd.wait()
         
         end_time = datetime.now()
         print('Duration: {}'.format(end_time - start_time))
 
-class FFT(Sound):
+    def fft(self) -> 'FFT':
+        return FFT(self)
     
-    def __init__(self, freq, numpyarray):
-        
-        self.freq = freq
-        self.numpyarray = numpyarray
-        
-        self.xs = np.linspace(0, len(numpyarray)/freq, freq)
-        self.ys = numpyarray
-
-        
-    def FFT(self):
-        
-        self.xs = np.fft.rfft(self.xs)
-        self.ys = abs(np.fft.rfft(self.ys))
-        
-        return self.xs, self.ys
-        
-class PowerSpectrum(FFT):
+class FFT:
     
-    def __init__(self, freq, numpyarray):
+    def __init__(self, sound: Sound):
+        
+        self.samplingfreq = sound.samplingfreq
+        self.ys =sound.numpyarray
+        self.xs = np.fft.rfft(np.linspace(0, len(self.ys)/self.samplingfreq, self.samplingfreq))
+        
+        
+    def ifft(self) -> Sound:
+        
+        self.xs = np.fft.irfft(self.xs)
+        self.ys = abs(np.fft.irfft(self.ys))
+        
+        return Sound(self.samplingfreq, self.ys)
+    
+    def plot(self) -> None:
+        
+        plt.plot(self.xs, self.ys)
+        
+class PowerSpectrum:
+    
+    def __init__(self, fft: FFT):
  
-        self.freq = freq
-        self.numpyarray = numpyarray
+        self.samplingfreq = fft.samplingfreq
+        self.numpyarray = fft.numpyarray
         
-        self.xs = np.linspace(0, len(numpyarray)/freq, freq)
-        self.ys = numpyarray
+        self.xs = np.linspace(0, len(self.numpyarray)/self.samplingfreq, self.samplingfreq)
+        self.ys = self.numpyarray
         
-    def powerspecturm(self):
+    def plot(self) -> None:
         
-        plt.plot(abs(np.fft.rfft(self.ys)))
+        plt.plot(self.xs, self.ys)
         #y values on the graph are a function of the sampling frequency * amplitude / 2
         
         
-# record(1, 44100).powerspecturm()
 
 # read(44100, "audio.wav").play()
 
-sine(1, 10, 10, 1).powerspecturm()
+print(sine(1, 10, 10, 1).ys)
+sine(1, 10, 10, 1).plot()
+fft = sine(1, 10, 10, 1).fft()
+ifft = fft.ifft()
+ifft.plot()
+print(ifft.ys)
+
+
+    
 
 
 # prevents the popup plot from deleting itself after creation

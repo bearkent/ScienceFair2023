@@ -12,3 +12,4 @@ scipy
 soundfile
 pydub
 ffmpeg
+typing
