@@ -32,30 +32,29 @@ def read(freq, file):
     
     return Sound(freq, audio_normalised)
 
-def sine(duration=1, frequency=1, samplingfreq=1000, amplitude=1, plot=False):
+def sine(duration, frequency, samplingfreq, amplitude):
     
-    xs = np.linspace(0, duration, frequency*duration*20)
+    if samplingfreq==None: samplingfreq=duration*frequency*50
+    
+    xs = np.linspace(0, duration, samplingfreq)
     
     ys = amplitude*np.sin(xs*2*np.pi*frequency)
-    
-    if plot: plt.plot(xs, ys)
         
-    return xs, ys
+    return Sound(samplingfreq, ys)
     
     
-        
-sine(1, 1, 30, 2, True)
+
     
     
 
 class Sound:
     
-    def __init__(self, freq, numpyarray):
+    def __init__(self, samplingfreq, numpyarray):
         
-        self.freq = freq
+        self.freq = samplingfreq
         self.numpyarray = numpyarray
         
-        self.xs = np.linspace(0, len(numpyarray)/freq, freq)
+        self.xs = np.linspace(0, len(numpyarray)/samplingfreq, samplingfreq)
         self.ys = numpyarray
         
     def plot(self):
@@ -110,6 +109,9 @@ class PowerSpectrum(FFT):
 # record(1, 44100).powerspecturm()
 
 # read(44100, "audio.wav").play()
+
+sine(1, 1, 50, 1).plot()
+
 
 # prevents the popup plot from deleting itself after creation
 fix()
