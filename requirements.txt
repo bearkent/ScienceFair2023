@@ -11,3 +11,4 @@ datetime
 scipy
 soundfile
 pydub
+ffmpeg
