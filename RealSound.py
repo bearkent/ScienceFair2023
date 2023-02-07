@@ -40,7 +40,7 @@ def sine(duration, frequency, samplingfreq, amplitude):
     
     ys = amplitude*np.sin(xs*2*np.pi*frequency)
         
-    return Sound(samplingfreq, ys)
+    return PowerSpectrum(samplingfreq, ys)
     
     
 
@@ -104,13 +104,14 @@ class PowerSpectrum(FFT):
     def powerspecturm(self):
         
         plt.plot(abs(np.fft.rfft(self.ys)))
+        #y values on the graph are a function of the sampling frequency * amplitude / 2
         
         
 # record(1, 44100).powerspecturm()
 
 # read(44100, "audio.wav").play()
 
-sine(1, 1, 50, 1).plot()
+sine(1, 10, 10, 1).powerspecturm()
 
 
 # prevents the popup plot from deleting itself after creation
