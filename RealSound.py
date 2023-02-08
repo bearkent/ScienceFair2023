@@ -52,6 +52,9 @@ class Sound:
         self.xs = np.linspace(0, len(numpyarray)/samplingfreq, samplingfreq)
         self.ys = numpyarray
         
+    def __len__(self) -> int:
+        return len(self.ys)    
+        
     def plot(self) -> None:
         
         plt.plot(self.xs, self.ys)  
@@ -76,10 +79,11 @@ class FFT:
     def __init__(self, sound: Sound):
         
         self.sound = sound
-        self.samplingfreq = sound.samplingfreq
         self.ys = np.fft.rfft(sound.numpyarray)
-        self.xs = np.fft.rfft(np.linspace(0, len(self.ys)/self.samplingfreq, self.samplingfreq))
-        
+        self.xs = np.fft.rfft(np.linspace(0, len(sound)/self.sound.samplingfreq, self.sound.samplingfreq))
+    
+    def __len__(self) -> int:
+        return len(self.ys) 
         
     def ifft(self) -> Sound:
         
@@ -95,26 +99,36 @@ class FFT:
 class PowerSpectrum:
     
     def __init__(self, fft: FFT):
- 
-        self.samplingfreq = fft.samplingfreq
-        self.numpyarray = fft.numpyarray
-        
-        self.xs = np.linspace(0, len(self.numpyarray)/self.samplingfreq, self.samplingfreq)
-        self.ys = self.numpyarray
-        
+        self.fft = fft    
+        self.xs = np.linspace(0, len(fft)/fft.sound.samplingfreq, fft.sound.samplingfreq)
+        self.ys = fft.ys
+    
+    def __len__(self) -> int:
+        return len(self.ys) 
+    
     def plot(self) -> None:
         
-        plt.plot(self.xs, self.ys) #y values on the graph are a function of the sampling frequency * amplitude / 2
+        plt.plot(self.ys) #y values on the graph are a function of the sampling frequency * amplitude / 2
+        
+    def max(self) -> float:
+        
+        return np.max(self.ys)
+        
         
 # read(44100, "audio.wav").play()
 
-fig = plt.figure()
-sinewave = sine(1, 10, 10, 1)
-sinewave.plot()
-fft = sine(1, 10, 10, 1).fft()
-ifft = fft.ifft()
-ifft.plot()
-fig.show()
+# fig = plt.figure()
+# sinewave = sine(1, 10, 10, 1)
+# sinewave.plot()
+# fft = sine(1, 10, 10, 1).fft()
+# ifft = fft.ifft()
+# ifft.plot()
+# fig.show()
+
+fft = sine(100, 10, 100, 1).fft()
+powerspecturm = PowerSpectrum(fft)
+print(powerspecturm.max())
+powerspecturm.plot()
 
 # prevents the popup plot from deleting itself after creation
 fix()
