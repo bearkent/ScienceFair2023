@@ -41,11 +41,6 @@ def sine(duration: float, frequency: float, samplingfreq: int, amplitude: float)
     ys = amplitude*np.sin(xs*2*np.pi*frequency)
         
     return Sound(samplingfreq, ys)
-    
-    
-
-    
-    
 
 class Sound:
     
@@ -59,7 +54,7 @@ class Sound:
         
     def plot(self) -> None:
         
-        plt.plot(self.xs, self.ys)
+        plt.plot(self.xs, self.ys)  
         
     def play(self) -> None:
         
@@ -94,7 +89,7 @@ class FFT:
         return Sound(self.samplingfreq, self.ys)
     
     def plot(self) -> None:
-        
+
         plt.plot(self.xs, self.ys)
         
 class PowerSpectrum:
@@ -109,25 +104,17 @@ class PowerSpectrum:
         
     def plot(self) -> None:
         
-        plt.plot(self.xs, self.ys)
-        #y values on the graph are a function of the sampling frequency * amplitude / 2
+        plt.plot(self.xs, self.ys) #y values on the graph are a function of the sampling frequency * amplitude / 2
         
-        
-
 # read(44100, "audio.wav").play()
 
 fig = plt.figure()
-print(sine(1, 10, 10, 1).ys)
-sine(1, 10, 10, 1).plot()
+sinewave = sine(1, 10, 10, 1)
+sinewave.plot()
 fft = sine(1, 10, 10, 1).fft()
 ifft = fft.ifft()
 ifft.plot()
-print(ifft.ys)
 fig.show()
-
-
-    
-
 
 # prevents the popup plot from deleting itself after creation
 fix()
