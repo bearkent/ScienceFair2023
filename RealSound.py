@@ -5,7 +5,7 @@ from wave import open
 import matplotlib.pyplot as plt 
 from fix import fix
 from datetime import datetime
-import threading
+import asyncio
 
 def record(duration: float, samplingfreq: int) -> None:
     
@@ -61,7 +61,7 @@ class Sound:
         
     def play(self) -> None:
         
-        print("playing audio")
+        print("playing audio\n")
         
         start_time = datetime.now()
         
@@ -114,7 +114,7 @@ class PowerSpectrum:
         
         return np.max(self.ys)
 
-def recordamps(startfreq, step, endfreq, samplingfreq):
+async def recordamps(startfreq, step, endfreq, samplingfreq):
     
     amps = []
     
@@ -122,18 +122,16 @@ def recordamps(startfreq, step, endfreq, samplingfreq):
         
         sinewave = sine(1, startfreq, samplingfreq, 1)
         
-        t1 = threading.Thread(target=Sound.play, args=(sinewave.self))
-        t2 = threading.Thread(target=record, args=(1, samplingfreq))
+        returnvals = await asyncio.gather(
+            asyncio.to_thread(Sound.play, sinewave),
+            asyncio.to_thread(record, 1, samplingfreq)
+        )
         
-        print("starting")
-        t1.start()
-        t2.start()
-        print("done")
-        
-        t1.join()
-        t2.join()
+        print(returnvals)
         
         startfreq += step
+        
+asyncio.run(recordamps(100, 100, 1000, 44100))
         
 # read(44100, "audio.wav").play()
 
@@ -145,11 +143,11 @@ def recordamps(startfreq, step, endfreq, samplingfreq):
 # ifft.plot()
 # fig.show()
 
-sine(10, 100, 44100, 10).play()
-fft = record(1, 44100).fft()
-powerspecturm = PowerSpectrum(fft)
-print(powerspecturm.max())
-powerspecturm.plot()
+# sine(10, 100, 44100, 10).play()
+# fft = record(1, 44100).fft()
+# powerspecturm = PowerSpectrum(fft)
+# print(powerspecturm.max())
+# powerspecturm.plot()
 
 # prevents the popup plot from deleting itself after creation
 fix()
