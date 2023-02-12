@@ -13,3 +13,4 @@ soundfile
 pydub
 ffmpeg
 typing
+threading

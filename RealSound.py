@@ -5,7 +5,7 @@ from wave import open
 import matplotlib.pyplot as plt 
 from fix import fix
 from datetime import datetime
-import pydub
+import threading
 
 def record(duration: float, samplingfreq: int) -> None:
     
@@ -14,7 +14,7 @@ def record(duration: float, samplingfreq: int) -> None:
     recording = sd.rec(int(duration * samplingfreq), samplerate=samplingfreq, channels=1, dtype=float)
     sd.wait()
     
-    return PowerSpectrum(samplingfreq, recording)
+    return Sound(samplingfreq, recording)
     
 def read(samplingfreq: int, file) -> 'Sound':
     
@@ -79,7 +79,7 @@ class FFT:
     def __init__(self, sound: Sound):
         
         self.sound = sound
-        self.ys = np.fft.rfft(sound.numpyarray)
+        self.ys = abs(np.fft.rfft(sound.numpyarray))
         self.xs = np.fft.rfft(np.linspace(0, len(sound)/self.sound.samplingfreq, self.sound.samplingfreq))
     
     def __len__(self) -> int:
@@ -113,7 +113,27 @@ class PowerSpectrum:
     def max(self) -> float:
         
         return np.max(self.ys)
+
+def recordamps(startfreq, step, endfreq, samplingfreq):
+    
+    amps = []
+    
+    while startfreq <= endfreq:
         
+        sinewave = sine(1, startfreq, samplingfreq, 1)
+        
+        t1 = threading.Thread(target=Sound.play, args=(sinewave.self))
+        t2 = threading.Thread(target=record, args=(1, samplingfreq))
+        
+        print("starting")
+        t1.start()
+        t2.start()
+        print("done")
+        
+        t1.join()
+        t2.join()
+        
+        startfreq += step
         
 # read(44100, "audio.wav").play()
 
@@ -125,7 +145,8 @@ class PowerSpectrum:
 # ifft.plot()
 # fig.show()
 
-fft = sine(100, 10, 100, 1).fft()
+sine(10, 100, 44100, 10).play()
+fft = record(1, 44100).fft()
 powerspecturm = PowerSpectrum(fft)
 print(powerspecturm.max())
 powerspecturm.plot()
