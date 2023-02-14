@@ -3,18 +3,14 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
 
 vals = np.load('TestValues1.npy')
-print(vals)
-plt.plot(vals[0], vals[1])
+# print(vals)
+# plt.plot(vals[0], vals[1])
 
 def cubicspline(x, y):
     
     f = CubicSpline(x, y, bc_type='natural')
     
     return f
-    
-    print([x_new, y_new])
-    
-    plt.plot(x_new, y_new)
     
 def plotspline(f):
     
