@@ -1,6 +1,6 @@
 import sounddevice as sd
 import numpy as np
-import scipy
+import pickle
 from wave import open
 import matplotlib.pyplot as plt 
 from fix import fix
@@ -117,6 +117,7 @@ class PowerSpectrum:
 async def recordamps(startfreq, step, endfreq, samplingfreq):
     
     amps = []
+    freqs = []
     
     while startfreq <= endfreq:
         
@@ -127,11 +128,28 @@ async def recordamps(startfreq, step, endfreq, samplingfreq):
             asyncio.to_thread(record, 1, samplingfreq)
         )
         
-        print(returnvals)
+        fft = FFT(returnvals[1])
+        powerspecturm = PowerSpectrum(fft)
+        amp = powerspecturm.max()
+        amps.append(amp)
+        
+        freqs.append(startfreq)
         
         startfreq += step
         
-asyncio.run(recordamps(100, 100, 1000, 44100))
+    amps = np.array(amps)
+    freqs = np.array(freqs)
+    vals = [freqs, amps]
+    np.save('TestValues1.npy', vals)
+    
+    # plt.plot(freqs, amps)
+    
+    
+    return freqs, amps
+        
+asyncio.run(recordamps(1, 200, 20001, 44100))
+
+
         
 # read(44100, "audio.wav").play()
 
