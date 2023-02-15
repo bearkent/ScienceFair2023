@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from fix import fix
 from datetime import datetime
 import asyncio
+from scipy.interpolate import CubicSpline
 
 def record(duration: float, samplingfreq: int) -> None:
     
@@ -90,11 +91,34 @@ class FFT:
         self.xs = np.fft.irfft(self.xs)
         self.ys = np.fft.irfft(self.ys)
         
-        return Sound(self.samplingfreq, self.ys)
+        return Sound(self.sound.samplingfreq, self.ys)
     
     def plot(self) -> None:
 
         plt.plot(self.xs, self.ys)
+        
+    def multiply(self, f: np.array) -> 'FFT':
+        rst = FFT(self.sound)
+        
+        i = 0
+        
+        while i < len(rst.ys):
+            
+            rst.ys[i] *= f(i)
+            
+            i +=1
+            
+        return rst
+    
+    def multiply1(self, f):
+    
+        xs = fft.xs
+        ys = fft.ys
+    
+        for freq in xs:
+            ys[xs.index(freq)] *= f(xs.index(freq))
+        
+        return ys
         
 class PowerSpectrum:
     
@@ -142,12 +166,49 @@ async def recordamps(startfreq, step, endfreq, samplingfreq):
     vals = [freqs, amps]
     np.save('TestValues1.npy', vals)
     
-    # plt.plot(freqs, amps)
-    
-    
     return freqs, amps
+
+def cubicspline(x, y):
+    
+    f = CubicSpline(x, y, bc_type='natural')
+    
+    return f
+
+def plotspline(f):
+    
+    x_new = np.linspace(1, 20001, 100000)
+    y_new = f(x_new)
+    
+    plt.plot(x_new, y_new)
+    
+def multiply(fft: FFT, f):
+    
+    xs = fft.xs
+    ys = fft.ys
+    
+    for freq in xs:
+        ys[xs.index(freq)] *= f(xs.index(freq))
         
-asyncio.run(recordamps(1, 200, 20001, 44100))
+    return ys
+
+vals = np.load('TestValues1.npy')
+xs = np.array(vals[0])
+ys = np.array(vals[1])
+f = cubicspline(xs, ys)
+sound = read(44100, 'audio.wav')
+sound.play()
+plt.plot(sound.ys)
+fft = FFT(sound)
+fft = fft.multiply(f)
+newsound = fft.ifft()
+newsound.play()
+plt.plot(newsound.ys)
+plt.show()
+
+
+
+        
+# asyncio.run(recordamps(1, 200, 20001, 44100))
 
 
         

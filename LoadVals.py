@@ -19,6 +19,15 @@ def plotspline(f):
     
     plt.plot(x_new, y_new)
     
+def multiply(fft, f):
+    
+    xs = fft.xs
+    ys = fft.ys
+    
+    for freq in xs:
+        ys[xs.index(freq)] *= f(xs.index(freq))
+        
+    return ys            
     
 plotspline(cubicspline(vals[0], vals[1]))
 
