@@ -3,10 +3,13 @@ import numpy as np
 import pickle
 from wave import open
 import matplotlib.pyplot as plt 
-from fix import fix
 from datetime import datetime
 import asyncio
 from scipy.interpolate import CubicSpline
+from fix import fix
+from scipy.io.wavfile import read
+from os.path import dirname, join as pjoin
+import scipy
 
 def record(duration: float, samplingfreq: int) -> None:
     
@@ -17,7 +20,7 @@ def record(duration: float, samplingfreq: int) -> None:
     
     return Sound(samplingfreq, recording)
     
-def read(samplingfreq: int, file) -> 'Sound':
+def oldread(samplingfreq: int, file) -> 'Sound':
     
     ifile = open(file)
     samples = ifile.getnframes()
@@ -28,10 +31,20 @@ def read(samplingfreq: int, file) -> 'Sound':
     audio_as_np_float32 = audio_as_np_int16.astype(np.float32)
     
     # Normalise float32 array so that values are between -1.0 and +1.0                                                      
-    max_int16 = 2**15
+    max_int16 = 2**15-1
     audio_normalised = audio_as_np_float32 / max_int16
     
     return Sound(samplingfreq, audio_normalised)
+
+def newread(file):
+    
+    # data_dir = pjoin(dirname(scipy.io.__file__), 'tests', 'data')
+    # wav_fname = pjoin(data_dir, '{}'.format(file))
+    
+    samplingfreq, ys = read(file)
+    
+    return Sound(samplingfreq, ys)
+    
 
 def sine(duration: float, frequency: float, samplingfreq: int, amplitude: float) -> 'Sound':
     
@@ -110,15 +123,15 @@ class FFT:
             
         return rst
     
-    def multiply1(self, f):
+    # def multiply1(self, f):
     
-        xs = fft.xs
-        ys = fft.ys
+    #     xs = fft.xs
+    #     ys = fft.ys
     
-        for freq in xs:
-            ys[xs.index(freq)] *= f(xs.index(freq))
+    #     for freq in xs:
+    #         ys[xs.index(freq)] *= f(xs.index(freq))
         
-        return ys
+    #     return ys
         
 class PowerSpectrum:
     
@@ -168,6 +181,17 @@ async def recordamps(startfreq, step, endfreq, samplingfreq):
     
     return freqs, amps
 
+def meaninverse(ys):
+    
+    sums = sum(ys)
+    lengths = len(ys)
+    mean = sums/lengths
+    # multiplier = 1/mean #makes sure the values are averaged to 1
+    
+    ys = mean/ys
+    
+    return ys
+
 def cubicspline(x, y):
     
     f = CubicSpline(x, y, bc_type='natural')
@@ -180,35 +204,38 @@ def plotspline(f):
     y_new = f(x_new)
     
     plt.plot(x_new, y_new)
+    fix()
+
     
-def multiply(fft: FFT, f):
+# def multiply(fft: FFT, f):
     
-    xs = fft.xs
-    ys = fft.ys
+#     xs = fft.xs
+#     ys = fft.ys
     
-    for freq in xs:
-        ys[xs.index(freq)] *= f(xs.index(freq))
+#     for freq in xs:
+#         ys[xs.index(freq)] *= f(xs.index(freq))
         
-    return ys
+#     return ys
 
-vals = np.load('TestValues1.npy')
-xs = np.array(vals[0])
-ys = np.array(vals[1])
-f = cubicspline(xs, ys)
-sound = read(44100, 'audio.wav')
-sound.play()
-plt.plot(sound.ys)
-fft = FFT(sound)
-fft = fft.multiply(f)
-newsound = fft.ifft()
-newsound.play()
-plt.plot(newsound.ys)
-plt.show()
+# asyncio.run(recordamps(1, 2000, 20001, 44100))
 
-
-
-        
-# asyncio.run(recordamps(1, 200, 20001, 44100))
+# vals = np.load('TestValues1.npy')
+# xs = np.array(vals[0])
+# ys = np.array(vals[1])
+# ys = meaninverse(ys)
+# f = cubicspline(xs, ys)
+# # plotspline(f)
+# sound = read(44100, 'audio.wav')
+# # sound.play()
+# # plt.plot(sound.ys)
+# fft = FFT(sound)
+# print('multiplying')
+# fft = fft.multiply(f)
+# newsound = fft.ifft()
+# newsound.play()
+# plt.plot(newsound.ys)
+# plt.show()
+# fix()
 
 
         
@@ -229,4 +256,3 @@ plt.show()
 # powerspecturm.plot()
 
 # prevents the popup plot from deleting itself after creation
-fix()
