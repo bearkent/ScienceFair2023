@@ -93,16 +93,16 @@ class FFT:
     def __init__(self, sound: Sound):
         
         self.sound = sound
-        self.ys = abs(np.fft.rfft(sound.numpyarray))
-        self.xs = np.fft.rfft(np.linspace(0, len(sound)/self.sound.samplingfreq, self.sound.samplingfreq))
+        self.ys = np.fft.fft(sound.numpyarray)
+        self.xs = sound.xs
     
     def __len__(self) -> int:
         return len(self.ys) 
         
     def ifft(self) -> Sound:
         
-        self.xs = np.fft.irfft(self.xs)
-        self.ys = np.fft.irfft(self.ys)
+        self.ys = np.real(np.fft.ifft(self.ys))
+        self.ys = self.ys.astype(int)
         
         return Sound(self.sound.samplingfreq, self.ys)
     
@@ -219,23 +219,23 @@ def plotspline(f):
 
 # asyncio.run(recordamps(1, 2000, 20001, 44100))
 
-# vals = np.load('TestValues1.npy')
-# xs = np.array(vals[0])
-# ys = np.array(vals[1])
-# ys = meaninverse(ys)
-# f = cubicspline(xs, ys)
-# # plotspline(f)
-# sound = read(44100, 'audio.wav')
-# # sound.play()
-# # plt.plot(sound.ys)
-# fft = FFT(sound)
-# print('multiplying')
-# fft = fft.multiply(f)
-# newsound = fft.ifft()
-# newsound.play()
-# plt.plot(newsound.ys)
-# plt.show()
-# fix()
+vals = np.load('TestValues1.npy')
+xs = np.array(vals[0])
+ys = np.array(vals[1])
+ys = meaninverse(ys)
+f = cubicspline(xs, ys)
+# plotspline(f)
+sound = read(44100, 'audio.wav')
+# sound.play()
+# plt.plot(sound.ys)
+fft = FFT(sound)
+print('multiplying')
+fft = fft.multiply(f)
+newsound = fft.ifft()
+newsound.play()
+plt.plot(newsound.ys)
+plt.show()
+fix()
 
 
         
