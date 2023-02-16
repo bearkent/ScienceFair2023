@@ -118,7 +118,7 @@ class FFT:
         
     def multiply(self, f: np.array) -> 'FFT':
 
-        newys = []
+        newys = np.copy(self.ys)
         
         
         print('multiplying')
@@ -127,11 +127,11 @@ class FFT:
             
             if self.xs[i] > 20000:
                 
-                newys.append(self.ys[i]*f(self.xs[i]))
+                newys[i] = self.ys[i]*f(self.xs[i])
             
             i +=1    
             
-        return FFT(Sound(self.sound.samplingfreq, np.array(newys)))
+        return FFT(Sound(self.sound.samplingfreq, newys))
     
 
 class PowerSpectrum:
