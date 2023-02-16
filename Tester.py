@@ -30,11 +30,11 @@ fft = sound.fft()
 # plt.plot(fft.ys)
 fft = fft.multiply(f)
 newsound = fft.ifft()
-
+print(newsound.ys)
 
 newsound.play()
-newfft = newsound.fft()
-plt.plot(newfft.ys)
+# newfft = newsound.fft()
+plt.plot(newsound.ys)
 plt.show()
 
 fix()

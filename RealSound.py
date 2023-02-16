@@ -87,30 +87,41 @@ class Sound:
         print('Duration: {}'.format(end_time - start_time))
 
     def fft(self) -> 'FFT':
-        return FFT(self)
+        return FFT(self.xs, self.ys, self.samplingfreq, False)
                 
     
 class FFT:
     
-    def __init__(self, sound: Sound):
+    def __init__(self, xs, ys, samplingfreq, bypass):
+
+        self.samplingfreq = samplingfreq
         
-        self.sound = sound
-        self.ys = np.fft.rfft(self.sound.numpyarray, axis=0)
+        self.samples = len(ys)
         
-        self.samples = len(sound.ys)
-        self.xs = np.linspace(0, self.samples/2, int(self.samples/2)+1) * (sound.samplingfreq/self.samples)
+        if bypass == False:
+            
+            self.ys = np.fft.rfft(ys, axis=0)
+            
+        else:
+            
+            self.ys = ys
+        
+        
+        
+        self.xs = xs
+        self.xs = np.linspace(0, self.samples/2, int(self.samples/2)+1) * (self.samplingfreq/self.samples)
     
     def __len__(self) -> int:
         return len(self.ys) 
         
     def ifft(self) -> Sound:
         
-        self.xs = self.sound.xs
+        self.xs = np.linspace(0, len(self.ys)/self.samplingfreq, len(self.ys))
         
         self.ys = np.fft.irfft(self.ys, axis=0)
         # self.ys = self.ys.astype(int)
         
-        return Sound(self.sound.samplingfreq, self.ys)
+        return Sound(self.samplingfreq, self.ys)
     
     def plot(self) -> None:
 
@@ -131,7 +142,7 @@ class FFT:
             
             i +=1    
             
-        return FFT(Sound(self.sound.samplingfreq, newys))
+        return FFT(self.xs, newys, self.samplingfreq, True)
     
 
 class PowerSpectrum:
