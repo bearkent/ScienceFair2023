@@ -10,13 +10,17 @@ import matplotlib.pyplot as plt
 # print(testifft)
 
 sound = RealSound.newread('flamenco.wav')
-# sound.play()
-print("{},{}".format(sound.xs,sound.ys))
+sound.play()
+plt.plot(sound.ys)
+print("{},{}".format(sound.xs, sound.ys))
 fft = sound.fft()
 # print(fft.ys)
 ifft = fft.ifft()
+plt.plot(ifft.ys)
 print("{},{}".format(ifft.xs, ifft.ys))
 ifft.play()
+plt.legend()
+plt.show()
 
 
 from fix import fix
