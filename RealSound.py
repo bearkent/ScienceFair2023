@@ -11,6 +11,7 @@ from scipy.io.wavfile import read
 from os.path import dirname, join as pjoin
 from scipy.io.wavfile import write
 
+#TODO: document all code before the fair
 
 def record(duration: float, samplingfreq: int) -> 'Sound':
     print("recording")
