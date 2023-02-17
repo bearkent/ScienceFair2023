@@ -36,11 +36,19 @@ class TestPowerSpectrum(unittest.TestCase):
     def test_fail(self):
         self.fail()
 
-**
-# recordamps
-# meaninverse
-# cubicspline
-# plotspline
+class TestUtilityFuncs(unittest.TestCase):
+    def test_recordamps(self):
+        self.fail()
+
+    def test_meaninverse(self):
+        self.fail()
+
+    def test_cubicspline(self):
+        self.fail()
+
+    def test_plotspline(self):
+        self.fail()
+
 
 if __name__ == '__main__':
     unittest.main()

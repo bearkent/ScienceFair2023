@@ -22,7 +22,7 @@ def record(duration: float, samplingfreq: int) -> 'Sound':
 
 
 #TODO: rename
-def newread(file):
+def newread(file) -> 'Sound':
     samplingfreq, ys = read(file)
     return Sound(samplingfreq, ys)
 
@@ -131,6 +131,7 @@ class PowerSpectrum:
         return np.max(self.ys)
 
 
+#TODO: better name?
 async def recordamps(startfreq, step, endfreq, samplingfreq):
     
     amps = []
