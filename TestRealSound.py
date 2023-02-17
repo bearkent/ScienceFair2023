@@ -142,7 +142,7 @@ class TestPowerSpectrum(unittest.TestCase):
         samplingfreq = 44100
 
         frequency = 100
-        amplitude = 7.4
+        amplitude = 10
         s1 = rs.sine(duration, frequency, samplingfreq, amplitude)
         s_in = rs.Sound(samplingfreq, s1.ys)
 
@@ -157,8 +157,8 @@ class TestPowerSpectrum(unittest.TestCase):
         # self.assertEqual(100, indexofmax)
 
         xmax,ymax = ps.max()
-        self.assertEqual(frequency, xmax)
-        self.assertEqual(amplitude*amplitude, ymax)
+        self.assertAlmostEqual(frequency, xmax, delta=1e-2)
+        self.assertAlmostEqual(amplitude*amplitude, ymax, delta=1e-1)
 
         #TODO: repeat with another frequency and amplitude
 

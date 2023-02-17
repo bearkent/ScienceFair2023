@@ -104,8 +104,9 @@ class PowerSpectrum:
     
     def __init__(self, fft: FFT):
         self.xs = fft.xs
-        self.ys = abs(fft.ys)**2
-    
+        self.ys = abs(fft.ys/len(self.xs))**2
+
+        # the spectral density of they y values is the fft y values squared over the length of the x values squared.
     def __len__(self) -> int:
         return len(self.ys) 
     
