@@ -11,44 +11,26 @@ from scipy.io.wavfile import read
 from os.path import dirname, join as pjoin
 from scipy.io.wavfile import write
 
+
 def record(duration: float, samplingfreq: int) -> 'Sound':
     print("recording")
     #TODO: record to float or int???
     recording = sd.rec(int(duration * samplingfreq), samplerate=samplingfreq, channels=1, dtype=float)
     sd.wait()
     return Sound(samplingfreq, recording)
-    
-# def oldread(samplingfreq: int, file) -> 'Sound':
-#     ifile = open(file)
-#     samples = ifile.getnframes()
-#     audio = ifile.readframes(samples)
-#
-#     # Convert buffer to float32 using NumPy
-#     audio_as_np_int16 = np.frombuffer(audio, dtype=np.int16)
-#     audio_as_np_float32 = audio_as_np_int16.astype(np.float32)
-#
-#     # Normalise float32 array so that values are between -1.0 and +1.0
-#     max_int16 = 2**15-1
-#     audio_normalised = audio_as_np_float32 / max_int16
-#
-#     return Sound(samplingfreq, audio_normalised)
 
+
+#TODO: rename
 def newread(file):
     samplingfreq, ys = read(file)
     return Sound(samplingfreq, ys)
-    
+
 
 def sine(duration: float, frequency: float, samplingfreq: int, amplitude: float) -> 'Sound':
-
-    #TODO: is this block used?
-    if samplingfreq==None: 
-        samplingfreq=duration*frequency*50
-    
     xs = np.linspace(0, duration, duration*samplingfreq)
-    
     ys = amplitude*np.sin(xs*2*np.pi*frequency)
-        
     return Sound(samplingfreq, ys)
+
 
 class Sound:
     
@@ -63,7 +45,9 @@ class Sound:
         
     def __len__(self) -> int:
         return len(self.ys)    
-        
+
+    #TODO: it seems like sound should have a write function
+
     def plot(self) -> None:
         plt.plot(self.xs, self.ys)  
         
@@ -82,36 +66,27 @@ class Sound:
         #TODO: fix fft constructor
         return FFT(self.xs, self.ys, self.samplingfreq, False)
 
+
 class FFT:
 
-    #TODO: constructor looks suspect
+    #TODO: constructor looks suspect --> seems like the input should be a sound
     def __init__(self, xs, ys, samplingfreq, bypass):
-
         self.samplingfreq = samplingfreq
-        
         self.samples = len(ys)
         
         if bypass == False:
-            
             self.ys = np.fft.rfft(ys, axis=0)
-            
         else:
-            
             self.ys = ys
-        
-        
-        
-        # self.xs = xs
+
         self.xs = np.linspace(0, self.samples/2, int(self.samples/2)+1) * (self.samplingfreq/self.samples)
     
     def __len__(self) -> int:
         return len(self.ys) 
         
     def ifft(self) -> Sound:
-        
-        # self.xs = np.linspace(0, len(self.ys)/self.samplingfreq, len(self.ys))
-        
         self.ys = np.fft.irfft(self.ys, axis=0)
+        #TODO: what should the types be for sounds?!
         # self.ys = self.ys.astype(int)
         
         return Sound(self.samplingfreq, self.ys)
@@ -154,6 +129,7 @@ class PowerSpectrum:
     def max(self) -> float:
         return np.max(self.ys)
 
+
 async def recordamps(startfreq, step, endfreq, samplingfreq):
     
     amps = []
@@ -190,6 +166,7 @@ async def recordamps(startfreq, step, endfreq, samplingfreq):
     
     return freqs, amps
 
+
 def meaninverse(ys):
     #TODO: I think there is an avg func
     sums = sum(ys)
@@ -201,9 +178,9 @@ def meaninverse(ys):
     
     return ys
 
+
 def cubicspline(x, y):
     return CubicSpline(x, y, bc_type='natural')
-
 
 
 def plotspline(f):
