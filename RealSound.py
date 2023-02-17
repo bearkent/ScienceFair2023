@@ -72,7 +72,7 @@ class FFT:
         self.samplingfreq = samplingfreq
         self.ys = ys
         samples = len(ys)
-        self.xs = np.linspace(0, samples/2, int(samples/2)+1) * (samplingfreq/samples)
+        self.xs = np.linspace(0, samples/2, samples) * (samplingfreq/samples)
     
     def __len__(self) -> int:
         return len(self.ys) 
@@ -104,7 +104,7 @@ class PowerSpectrum:
     
     def __init__(self, fft: FFT):
         self.xs = fft.xs
-        self.ys = abs(fft.ys)^2
+        self.ys = abs(fft.ys)**2
     
     def __len__(self) -> int:
         return len(self.ys) 
@@ -114,7 +114,10 @@ class PowerSpectrum:
 
     #TODO: what should this be doing?
     def max(self) -> float:
-        return np.max(self.ys)
+        i = np.argmax(self.ys)
+        x = self.xs[i]
+        y = self.ys[i]
+        return x, y
 
 
 #TODO: better name?
@@ -135,7 +138,9 @@ async def recordamps(testfreq, step, endfreq, samplingfreq, samplingtime):
         fft = returnvals[1].fft()
         powerspecturm = PowerSpectrum(fft)
 
-        amp = powerspecturm.max()
+        vals = powerspecturm.max()
+        spectraldensity = vals[0]
+        amp = spectraldensity**0.5
         amps.append(amp)
         
         freqs.append(testfreq)
@@ -149,7 +154,7 @@ async def recordamps(testfreq, step, endfreq, samplingfreq, samplingtime):
     #TODO: save is better as a different function that takes in a filename, so that you can easily run and save multiple tests
     np.save('TestValues1.npy', vals)
     
-    return freqs, amps
+    return [freqs, amps]
 
 
 def meaninverse(ys):

@@ -4,7 +4,7 @@ import os
 import numpy as np
 import numpy.testing as npt
 import matplotlib.pyplot as plt
-
+from fix import fix
 import RealSound as rs
 
 class TestSound(unittest.TestCase):
@@ -129,34 +129,68 @@ class TestFFT(unittest.TestCase):
         self.fail()
 
 class TestPowerSpectrum(unittest.TestCase):
+
+    def test_shapes(self):
+
+        sinewave = rs.sine(1, 1000, 44100, 1)
+        fft = sinewave.fft()
+
+        self.assertEqual(len(fft.xs), len(fft.ys))
+
     def test_frequencies(self):
         duration = 0.5
         samplingfreq = 44100
-        frequency1 = 5000
-        frequency2 = 15000
-        amplitude = 1
-        s1 = rs.sine(duration, frequency1, samplingfreq, amplitude)
-        s2 = rs.sine(duration, frequency2, samplingfreq, amplitude)
-        s_in = rs.Sound(samplingfreq, s1.ys + s2.ys)
+
+        frequency = 100
+        amplitude = 7.4
+        s1 = rs.sine(duration, frequency, samplingfreq, amplitude)
+        s_in = rs.Sound(samplingfreq, s1.ys)
 
         fft = s_in.fft()
+        ps = rs.PowerSpectrum(fft)
+        ps.plot()
+        fix()
         #TODO: determine if the power spectrum has major peaks at frequency1 and frequency2
-        self.fail()
+
+        #TODO: ?????
+        # indexofmax = np.argmax(ps.ys)
+        # self.assertEqual(100, indexofmax)
+
+        xmax,ymax = ps.max()
+        self.assertEqual(frequency, xmax)
+        self.assertEqual(amplitude*amplitude, ymax)
+
+        #TODO: repeat with another frequency and amplitude
 
 
 class TestUtilityFuncs(unittest.TestCase):
     def test_recordamps(self):
+
+        # testfreq = 20
+        # step = 1000
+        # endfreq = 20000
+        # freqs = np.arange(20, 20000, 1000)
+        #
+        # samplingfreq = 44100
+        # samplingtime = 1
+        #
+        # vals = rs.recordamps(testfreq, step, endfreq, samplingfreq, samplingtime)
+
         self.fail()
 
     def test_meaninverse(self):
-        self.fail()
+
+        ys = np.array([1, 2, 3])
+        inverseys = rs.meaninverse(ys)
+
+        self.assertIsNone(npt.assert_allclose(np.array([2, 1, 2/3]), inverseys))
 
     def test_cubicspline(self):
-        self.fail()
 
-    def test_plotspline(self):
-        self.fail()
+        f = rs.cubicspline(np.array([0, 1, 2]), np.array([2, 2, 2]))
+        y = f(0.5)
 
+        self.assertEqual(2, y)
 
 if __name__ == '__main__':
     unittest.main()
