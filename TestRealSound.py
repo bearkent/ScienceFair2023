@@ -126,7 +126,31 @@ class TestFFT(unittest.TestCase):
         self.assertIsNone(npt.assert_allclose(s_in.ys, s_out.ys, atol=1e-7, rtol=1))
 
     def test_multiply(self):
-        self.fail()
+
+        def func(x):
+
+            return x*2
+
+        sinewave = rs.sine(1, 100, 44100, 1)
+        fft = sinewave.fft()
+
+        fft.multiply(func)
+        ifft = fft.ifft()
+
+        self.assertAlmostEqual(sinewave.ys[0], ifft.ys[0]/2, delta=1e-5)
+
+        def func2(x):
+
+            return x**2
+
+        sinewave2 = rs.sine(1, 1000, 44100, 1)
+        fft2 = sinewave2.fft()
+
+        fft2.multiply(func2)
+        ifft2 = fft2.ifft()
+
+        self.assertAlmostEqual(sinewave2.ys[0], ifft2.ys[0]**0.5, delta=1e-2)
+
 
 class TestPowerSpectrum(unittest.TestCase):
 
@@ -148,20 +172,33 @@ class TestPowerSpectrum(unittest.TestCase):
 
         fft = s_in.fft()
         ps = rs.PowerSpectrum(fft)
-        ps.plot()
-        fix()
-        #TODO: determine if the power spectrum has major peaks at frequency1 and frequency2
+        # ps.plot()
+        # fix()
 
-        #TODO: ?????
-        # indexofmax = np.argmax(ps.ys)
-        # self.assertEqual(100, indexofmax)
-
-        xmax,ymax = ps.max()
+        xmax,ymax,amp = ps.max()
         self.assertAlmostEqual(frequency, xmax, delta=1e-2)
         self.assertAlmostEqual(amplitude*amplitude, ymax, delta=1e-1)
+        self.assertAlmostEqual(amplitude, ymax**0.5, delta=1e-2)
 
         #TODO: repeat with another frequency and amplitude
 
+        duration2 = 1
+        samplingfreq2 = 88200
+
+        frequency2 = 1000
+        amplitude2 = 7
+        s2 = rs.sine(duration2, frequency2, samplingfreq2, amplitude2)
+        s_in2 = rs.Sound(samplingfreq2, s2.ys)
+
+        fft2 = s_in2.fft()
+        ps2 = rs.PowerSpectrum(fft2)
+        # ps.plot()
+        # fix()
+
+        xmax2, ymax2, amp2 = ps2.max()
+        self.assertAlmostEqual(frequency2, xmax2, delta=1e-2)
+        self.assertAlmostEqual(amplitude2 * amplitude2, ymax2, delta=1e-1)
+        self.assertAlmostEqual(amplitude2, ymax2 ** 0.5, delta=1e-2)
 
 class TestUtilityFuncs(unittest.TestCase):
     def test_recordamps(self):

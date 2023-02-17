@@ -92,10 +92,8 @@ class FFT:
 
         print('multiplying')
 
-        #TODO: vectorize
-        for i in range(0, int(len(self.ys)/2)):
-            
-            newys[i] = self.ys[i]*f(self.xs[i])  
+        ff = np.vectorize(f)
+        newys = self.ys * ff(self.xs)
             
         return FFT(self.samplingfreq, newys)
     
@@ -118,7 +116,9 @@ class PowerSpectrum:
         i = np.argmax(self.ys)
         x = self.xs[i]
         y = self.ys[i]
-        return x, y
+        amp = y**0.5
+
+        return x, y, amp
 
 
 #TODO: better name?
@@ -140,9 +140,7 @@ async def recordamps(testfreq, step, endfreq, samplingfreq, samplingtime):
         powerspecturm = PowerSpectrum(fft)
 
         vals = powerspecturm.max()
-        spectraldensity = vals[0]
-        amp = spectraldensity**0.5
-        amps.append(amp)
+        amps.append(vals[2])
         
         freqs.append(testfreq)
         
