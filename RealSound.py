@@ -28,7 +28,8 @@ def soundread(file) -> 'Sound':
 
 
 def sine(duration: float, frequency: float, samplingfreq: int, amplitude: float) -> 'Sound':
-    xs = np.linspace(0, duration, int(duration*samplingfreq))
+    n = int(duration*samplingfreq)
+    xs = np.arange(0, n+1) / samplingfreq
     ys = amplitude*np.sin(xs*2*np.pi*frequency)
     return Sound(samplingfreq, ys)
 
@@ -38,14 +39,10 @@ class Sound:
     def __init__(self, samplingfreq: int, ys: np.array):
         self.samplingfreq = samplingfreq
         self.ys = ys
-
-        #TODO: is there a better option than linspace or arange -> arange(0,n)* step
-        self.xs = np.linspace(0, len(ys)/samplingfreq, len(ys))
+        self.xs = np.arange(0, len(ys)) / samplingfreq
 
     def __len__(self) -> int:
         return len(self.ys)    
-
-    #TODO: it seems like sound should have a write function
 
     def plot(self) -> None:
         plt.plot(self.xs, self.ys)  
@@ -62,7 +59,6 @@ class Sound:
         print('Duration: {}'.format(end_time - start_time))
         
     def write(self, file) -> None:
-        
         write(file, self.samplingfreq, self.ys)
 
     def fft(self) -> 'FFT':
