@@ -83,21 +83,64 @@ class TestSound(unittest.TestCase):
 
         os.remove(file)
 
-    def test_fft(self):
+    def test_plot(self):
         self.fail()
-
-
-
 
 
 class TestFFT(unittest.TestCase):
 
-    def test_fail(self):
+    def test_roundtrip(self):
+        duration = 0.5
+        samplingfreq = 44100
+        frequency1 = 5000
+        frequency2 = 15000
+        amplitude = 1
+        s1 = rs.sine(duration, frequency1, samplingfreq, amplitude)
+        s2 = rs.sine(duration, frequency2, samplingfreq, amplitude)
+        s_in = rs.Sound(samplingfreq, s1.ys + s2.ys)
+
+        fft = s_in.fft()
+
+        self.assertEqual(samplingfreq, fft.samplingfreq)
+        #TODO: assert expected contents of fft
+        # self.assertEqual(len(s_in), len(fft))
+        # self.assertEqual(len(s_in), len(fft.xs))
+        # self.assertEqual(len(s_in), len(fft.ys))
+        #TODO: assert xs values are exactly what is expected
+
+        s_out = fft.ifft()
+
+        self.assertEqual(samplingfreq, s_out.samplingfreq)
+        self.assertEqual(len(s_in), len(s_out))
+        self.assertEqual(len(s_in), len(s_out.xs))
+        self.assertEqual(len(s_in), len(s_out.ys))
+        self.assertIsNone(npt.assert_allclose(s_in.xs, s_out.xs))
+        self.assertIsNone(npt.assert_allclose(s_in.ys, s_out.ys, atol=1e-7, rtol=1))
+
+    def test_multiply(self):
+        self.fail()
+
+    def test_plot(self):
         self.fail()
 
 class TestPowerSpectrum(unittest.TestCase):
     def test_fail(self):
         self.fail()
+
+    def test_frequencies(self):
+        duration = 0.5
+        samplingfreq = 44100
+        frequency1 = 5000
+        frequency2 = 15000
+        amplitude = 1
+        s1 = rs.sine(duration, frequency1, samplingfreq, amplitude)
+        s2 = rs.sine(duration, frequency2, samplingfreq, amplitude)
+        s_in = rs.Sound(samplingfreq, s1.ys + s2.ys)
+
+        fft = s_in.fft()
+        #TODO: determine if the power spectrum has major peaks at frequency1 and frequency2
+        self.fail()
+
 
 class TestUtilityFuncs(unittest.TestCase):
     def test_recordamps(self):

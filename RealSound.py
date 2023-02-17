@@ -1,15 +1,16 @@
+from typing import Callable
 import sounddevice as sd
 import numpy as np
-import pickle
-from wave import open
+# import pickle
+# from wave import open
 import matplotlib.pyplot as plt 
 from datetime import datetime
 import asyncio
 from scipy.interpolate import CubicSpline
-from fix import fix
+# from fix import fix
 from scipy.io.wavfile import read
-from os.path import dirname, join as pjoin
-from scipy.io.wavfile import write
+# from os.path import dirname, join as pjoin
+# from scipy.io.wavfile import write
 
 #TODO: document all code before the fair
 
@@ -62,58 +63,52 @@ class Sound:
         print('Duration: {}'.format(end_time - start_time))
 
     def fft(self) -> 'FFT':
-        #TODO: fix fft constructor
-        return FFT(self.xs, self.ys, self.samplingfreq, False)
+        ys = np.fft.rfft(self.ys, axis=0)
+        return FFT(self.samplingfreq, ys)
 
 
 class FFT:
 
-    #TODO: constructor looks suspect --> seems like the input should be a sound
-    def __init__(self, xs, ys, samplingfreq, bypass):
+    def __init__(self, samplingfreq: int, ys: np.array):
         self.samplingfreq = samplingfreq
-        self.samples = len(ys)
-        
-        if bypass == False:
-            self.ys = np.fft.rfft(ys, axis=0)
-        else:
-            self.ys = ys
-
-        self.xs = np.linspace(0, self.samples/2, int(self.samples/2)+1) * (self.samplingfreq/self.samples)
+        self.ys = ys
+        samples = len(ys)
+        self.xs = np.linspace(0, samples/2, int(samples/2)+1) * (samplingfreq/samples)
     
     def __len__(self) -> int:
         return len(self.ys) 
         
     def ifft(self) -> Sound:
-        self.ys = np.fft.irfft(self.ys, axis=0)
-        #TODO: what should the types be for sounds?!
+        ys = np.fft.irfft(self.ys, axis=0)
+        #TODO: what should the types be for sounds?! int or float?
         # self.ys = self.ys.astype(int)
         
-        return Sound(self.samplingfreq, self.ys)
+        return Sound(self.samplingfreq, ys)
     
     def plot(self) -> None:
         plt.plot(self.xs, self.ys)
-        
-    def multiply(self, f: np.array) -> 'FFT':
+
+    def multiply(self, f: Callable[[float],float]) -> 'FFT':
         newys = np.copy(self.ys)
 
         print('multiplying')
 
         #TODO: vectorize
         for i in range(0, int(len(self.ys)/2)):
-            
+            #TODO: (1) why is this filtering here?  It seems like if it doesn't work if it is missing, then something is wrong.
+            #TODO: (2) if the filtering is needed, why not put it inside the function to simplify the multiply?
+            #TODO: (3) in this more complex form, this is hard to test
             if self.xs[i] > 20000:
-                
                 newys[i] = self.ys[i]*f(self.xs[i])
             #TODO: looks like a bug
             i +=1    
             
-        return FFT(self.xs, newys, self.samplingfreq, True)
+        return FFT(self.samplingfreq, newys)
     
 
 class PowerSpectrum:
     
     def __init__(self, fft: FFT):
-        # self.fft = fft
         self.xs = fft.xs
         self.ys = fft.ys  #TODO: not a power spectrum...
     
@@ -146,7 +141,7 @@ async def recordamps(startfreq, step, endfreq, samplingfreq):
             asyncio.to_thread(record, 1, samplingfreq)
         )
         
-        fft = FFT(returnvals[1])
+        fft = returnvals[1].fft()
         powerspecturm = PowerSpectrum(fft)
 
         #TODO: power spectrum is sq of amplitude??
