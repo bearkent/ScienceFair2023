@@ -19,38 +19,15 @@ def record(duration: float, samplingfreq: int) -> 'Sound':
     sd.wait()
     
     return Sound(samplingfreq, recording)
-    
-def oldread(samplingfreq: int, file) -> 'Sound':
-    
-    ifile = open(file)
-    samples = ifile.getnframes()
-    audio = ifile.readframes(samples)
-    
-    # Convert buffer to float32 using NumPy                                                                                 
-    audio_as_np_int16 = np.frombuffer(audio, dtype=np.int16)
-    audio_as_np_float32 = audio_as_np_int16.astype(np.float32)
-    
-    # Normalise float32 array so that values are between -1.0 and +1.0                                                      
-    max_int16 = 2**15-1
-    audio_normalised = audio_as_np_float32 / max_int16
-    
-    return Sound(samplingfreq, audio_normalised)
 
-def newread(file):
-    
-    # data_dir = pjoin(dirname(scipy.io.__file__), 'tests', 'data')
-    # wav_fname = pjoin(data_dir, '{}'.format(file))
+def read(file):
     
     samplingfreq, ys = read(file)
-    
     return Sound(samplingfreq, ys)
     
 
 def sine(duration: float, frequency: float, samplingfreq: int, amplitude: float) -> 'Sound':
-    
-    if samplingfreq==None: 
-        samplingfreq=duration*frequency*50
-    
+
     xs = np.linspace(0, duration, duration*samplingfreq)
     
     ys = amplitude*np.sin(xs*2*np.pi*frequency)
@@ -85,6 +62,10 @@ class Sound:
         
         end_time = datetime.now()
         print('Duration: {}'.format(end_time - start_time))
+        
+    def write(self, file) -> None:
+        
+        write(file, self.samplingfreq, self.ys)
 
     def fft(self) -> 'FFT':
         return FFT(self.xs, self.ys, self.samplingfreq, False)
@@ -106,8 +87,6 @@ class FFT:
             
             self.ys = ys
         
-        
-        
         self.xs = xs
         self.xs = np.linspace(0, self.samples/2, int(self.samples/2)+1) * (self.samplingfreq/self.samples)
     
@@ -115,8 +94,6 @@ class FFT:
         return len(self.ys) 
         
     def ifft(self) -> Sound:
-        
-        self.xs = np.linspace(0, len(self.ys)/self.samplingfreq, len(self.ys))
         
         self.ys = np.fft.irfft(self.ys, axis=0)
         # self.ys = self.ys.astype(int)
@@ -126,6 +103,7 @@ class FFT:
     def plot(self) -> None:
 
         plt.plot(self.xs, self.ys)
+        fix()
         
     def multiply(self, f: np.array) -> 'FFT':
 
@@ -138,9 +116,7 @@ class FFT:
             
             if self.xs[i] > 20000:
                 
-                newys[i] = self.ys[i]*f(self.xs[i])
-            
-            i +=1    
+                newys[i] = self.ys[i]*f(self.xs[i])  
             
         return FFT(self.xs, newys, self.samplingfreq, True)
     
@@ -150,14 +126,15 @@ class PowerSpectrum:
     def __init__(self, fft: FFT):
         self.fft = fft    
         self.xs = fft.xs
-        self.ys = fft.ys
+        self.ys = abs(fft.ys)^2
     
     def __len__(self) -> int:
         return len(self.ys) 
     
     def plot(self) -> None:
         
-        plt.plot(self.ys) #y values on the graph are a function of the sampling frequency * amplitude / 2
+        plt.plot(self.xs, self.ys) #y values on the graph are a function of the sampling frequency * amplitude / 2
+        fix()
         
     def max(self) -> float:
         
@@ -207,9 +184,7 @@ def meaninverse(ys):
 
 def cubicspline(x, y):
     
-    f = CubicSpline(x, y, bc_type='natural')
-    
-    return f
+    return CubicSpline(x, y, bc_type='natural')
 
 def plotspline(f):
     
@@ -218,27 +193,3 @@ def plotspline(f):
     
     plt.plot(x_new, y_new)
     fix()
-
-# vals = np.load('TestValues1.npy')
-# xs = np.array(vals[0])
-# ys = np.array(vals[1])
-# ys = meaninverse(ys)
-# f = cubicspline(xs, ys)
-
-# sound = record(5, 44100)
-# sound.play()
-# # plt.plot(sound.ys)
-# fft = sound.fft()
-# plt.plot(fft.xs, fft.ys)
-# # plt.plot(fft.ys)
-# fft = fft.multiply(f)
-# newsound = fft.ifft()
-
-
-# newsound.play()
-# newfft = newsound.fft()
-# # plt.plot(newfft.ys)
-# plt.show()
-
-# fix()
-# prevents the popup plot from deleting itself after creation
