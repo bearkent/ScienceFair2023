@@ -1,5 +1,6 @@
 from typing import Callable
 import sounddevice as sd
+import soundfile as sf
 import numpy as np
 # import pickle
 # from wave import open
@@ -8,7 +9,7 @@ from datetime import datetime
 import asyncio
 from scipy.interpolate import CubicSpline
 # from fix import fix
-from scipy.io.wavfile import read
+from scipy.io.wavfile import read, write
 # from os.path import dirname, join as pjoin
 # from scipy.io.wavfile import write
 
@@ -21,8 +22,7 @@ def record(duration: float, samplingfreq: int) -> 'Sound':
     sd.wait()
     return Sound(samplingfreq, recording)
 
-#TODO: rename
-def read(file) -> 'Sound':
+def soundread(file) -> 'Sound':
     samplingfreq, ys = read(file)
     return Sound(samplingfreq, ys)
 
@@ -84,7 +84,7 @@ class FFT:
     def ifft(self) -> Sound:
         ys = np.fft.irfft(self.ys, axis=0)
         #TODO: what should the types be for sounds?! int or float?
-        # self.ys = self.ys.astype(int)
+
         
         return Sound(self.samplingfreq, ys)
     
@@ -98,11 +98,8 @@ class FFT:
 
         #TODO: vectorize
         for i in range(0, int(len(self.ys)/2)):
-            #TODO: (1) why is this filtering here?  It seems like if it doesn't work if it is missing, then something is wrong.
-            #TODO: (2) if the filtering is needed, why not put it inside the function to simplify the multiply?
-            #TODO: (3) in this more complex form, this is hard to test
-            if self.xs[i] > 20000:
-                newys[i] = self.ys[i]*f(self.xs[i])  
+            
+            newys[i] = self.ys[i]*f(self.xs[i])  
             
         return FFT(self.samplingfreq, newys)
     
@@ -117,7 +114,7 @@ class PowerSpectrum:
         return len(self.ys) 
     
     def plot(self) -> None:
-        plt.plot(self.xs, self.ys) #y values on the graph are a function of the sampling frequency * amplitude / 2
+        plt.plot(self.xs, self.ys)
 
     #TODO: what should this be doing?
     def max(self) -> float:
@@ -125,32 +122,29 @@ class PowerSpectrum:
 
 
 #TODO: better name?
-async def recordamps(startfreq, step, endfreq, samplingfreq):
+async def recordamps(testfreq, step, endfreq, samplingfreq, samplingtime):
     
     amps = []
     freqs = []
 
-    #TODO: best not to reuse startfreq, since the meaning will be different from the name
-    while startfreq <= endfreq:
+    while testfreq <= endfreq:
         
-        sinewave = sine(1, startfreq, samplingfreq, 1)
+        sinewave = sine(samplingtime, testfreq, samplingfreq, 1)
         
         returnvals = await asyncio.gather(
             asyncio.to_thread(Sound.play, sinewave),
-            #TODO: should make the sample time configurable
-            asyncio.to_thread(record, 1, samplingfreq)
+            asyncio.to_thread(record, samplingtime, samplingfreq)
         )
         
         fft = returnvals[1].fft()
         powerspecturm = PowerSpectrum(fft)
 
-        #TODO: power spectrum is sq of amplitude??
         amp = powerspecturm.max()
         amps.append(amp)
         
-        freqs.append(startfreq)
+        freqs.append(testfreq)
         
-        startfreq += step
+        testfreq += step
         
     amps = np.array(amps)
     freqs = np.array(freqs)
@@ -167,7 +161,7 @@ def meaninverse(ys):
     sums = sum(ys)
     lengths = len(ys)
     mean = sums/lengths
-    #makes sure the values are averaged to 1
+    #makes sure the amps are averaged to 1
     
     ys = mean/ys
     

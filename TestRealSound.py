@@ -22,7 +22,7 @@ class TestSound(unittest.TestCase):
         duration = 2
         samplingfreq = 10
         frequency = 5
-        amplitude = 4.5
+        amplitude = 4
         ts = np.linspace(0,duration,num=samplingfreq*duration)
         ys = amplitude*np.sin(2*np.pi*frequency*ts)
         s = rs.sine(duration, frequency, samplingfreq, amplitude)
@@ -42,10 +42,10 @@ class TestSound(unittest.TestCase):
         s = rs.sine(duration, frequency, samplingfreq, amplitude)
         self.assertEqual(int(duration*samplingfreq), len(s))
         self.assertEqual(samplingfreq, s.samplingfreq)
-        self.assertIsNone(npt.assert_allclose(ts, s.xs))
-        self.assertIsNone(npt.assert_allclose(ys, s.ys))
         self.assertEqual(int(samplingfreq*duration), len(s.xs))
         self.assertEqual(int(samplingfreq*duration), len(s.ys))
+        self.assertIsNone(npt.assert_allclose(ts, s.xs))
+        self.assertIsNone(npt.assert_allclose(ys, s.ys))
 
     def test_play(self):
         duration = 0.5
@@ -75,17 +75,13 @@ class TestSound(unittest.TestCase):
         frequency = 10000
         amplitude = 1
         s1 = rs.sine(duration, frequency, samplingfreq, amplitude)
-        #TODO write
-        s2 = rs.newread(file)
+        s1.write(file)
+        s2 = rs.soundread(file)
         self.assertEqual(samplingfreq, s2.samplingfreq)
         self.assertIsNone(npt.assert_allclose(s1.xs, s2.xs))
         self.assertIsNone(npt.assert_allclose(s1.ys, s2.ys))
 
         os.remove(file)
-
-    def test_plot(self):
-        self.fail()
-
 
 class TestFFT(unittest.TestCase):
 
@@ -120,13 +116,7 @@ class TestFFT(unittest.TestCase):
     def test_multiply(self):
         self.fail()
 
-    def test_plot(self):
-        self.fail()
-
 class TestPowerSpectrum(unittest.TestCase):
-    def test_fail(self):
-        self.fail()
-
     def test_frequencies(self):
         duration = 0.5
         samplingfreq = 44100
