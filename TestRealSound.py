@@ -143,13 +143,13 @@ class TestFFT(unittest.TestCase):
 
             return x**2
 
-        sinewave2 = rs.sine(1, 1000, 44100, 1)
-        fft2 = sinewave2.fft()
+        ys = np.array([1,3,4,64,2,3,234,6534])
+
+        fft2 = rs.FFT(10, ys)
 
         fft2.multiply(func2)
-        ifft2 = fft2.ifft()
 
-        self.assertAlmostEqual(sinewave2.ys[0], ifft2.ys[0]**0.5, delta=1e-2)
+        self.assertAlmostEqual(ys[0], fft2.ys[0]**0.5, delta=1e-2)
 
 
 class TestPowerSpectrum(unittest.TestCase):
@@ -201,19 +201,20 @@ class TestPowerSpectrum(unittest.TestCase):
         self.assertAlmostEqual(amplitude2, ymax2 ** 0.5, delta=1e-2)
 
 class TestUtilityFuncs(unittest.TestCase):
-    def test_recordamps(self):
 
-        # testfreq = 20
-        # step = 1000
-        # endfreq = 20000
-        # freqs = np.arange(20, 20000, 1000)
-        #
-        # samplingfreq = 44100
-        # samplingtime = 1
-        #
-        # vals = rs.recordamps(testfreq, step, endfreq, samplingfreq, samplingtime)
-
-        self.fail()
+    # def test_recordamps(self):
+    #
+    #     testfreq = 20
+    #     step = 1000
+    #     endfreq = 20000
+    #     freqs = np.arange(20, 20000, 1000)
+    #
+    #     samplingfreq = 44100
+    #     samplingtime = 1
+    #
+    #     vals = rs.recordamps(testfreq, step, endfreq, samplingfreq, samplingtime)
+    #
+    #     self.fail()
 
     def test_meaninverse(self):
 
