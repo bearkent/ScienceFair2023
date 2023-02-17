@@ -29,7 +29,7 @@ def soundread(file) -> 'Sound':
 
 def sine(duration: float, frequency: float, samplingfreq: int, amplitude: float) -> 'Sound':
     xs = np.linspace(0, duration, int(duration*samplingfreq))
-    ys = amplitude*np.sin(xs*2*np.pi*frequency)
+    ys = amplitude*np.sin(2*np.pi*frequency*xs)
     return Sound(samplingfreq, ys)
 
 

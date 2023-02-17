@@ -37,7 +37,7 @@ class TestSound(unittest.TestCase):
         samplingfreq = 11
         frequency = 7.2
         amplitude = 0.6
-        ts = np.linspace(0,duration,num=int(samplingfreq*duration))
+        ts = np.linspace(0,duration, num=samplingfreq*duration)
         ys = amplitude*np.sin(2*np.pi*frequency*ts)
         s = rs.sine(duration, frequency, samplingfreq, amplitude)
         self.assertEqual(int(duration*samplingfreq), len(s))
