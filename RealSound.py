@@ -21,9 +21,8 @@ def record(duration: float, samplingfreq: int) -> 'Sound':
     sd.wait()
     return Sound(samplingfreq, recording)
 
-
 #TODO: rename
-def newread(file) -> 'Sound':
+def read(file) -> 'Sound':
     samplingfreq, ys = read(file)
     return Sound(samplingfreq, ys)
 
@@ -61,6 +60,10 @@ class Sound:
         
         end_time = datetime.now()
         print('Duration: {}'.format(end_time - start_time))
+        
+    def write(self, file) -> None:
+        
+        write(file, self.samplingfreq, self.ys)
 
     def fft(self) -> 'FFT':
         ys = np.fft.rfft(self.ys, axis=0)
@@ -99,9 +102,7 @@ class FFT:
             #TODO: (2) if the filtering is needed, why not put it inside the function to simplify the multiply?
             #TODO: (3) in this more complex form, this is hard to test
             if self.xs[i] > 20000:
-                newys[i] = self.ys[i]*f(self.xs[i])
-            #TODO: looks like a bug
-            i +=1    
+                newys[i] = self.ys[i]*f(self.xs[i])  
             
         return FFT(self.samplingfreq, newys)
     
@@ -110,14 +111,13 @@ class PowerSpectrum:
     
     def __init__(self, fft: FFT):
         self.xs = fft.xs
-        self.ys = fft.ys  #TODO: not a power spectrum...
+        self.ys = abs(fft.ys)^2
     
     def __len__(self) -> int:
         return len(self.ys) 
     
     def plot(self) -> None:
-        #TODO: plot does not include frequency so couldn't verify the power spectrum or fft
-        plt.plot(self.ys) #y values on the graph are a function of the sampling frequency * amplitude / 2
+        plt.plot(self.xs, self.ys) #y values on the graph are a function of the sampling frequency * amplitude / 2
 
     #TODO: what should this be doing?
     def max(self) -> float:
@@ -176,7 +176,6 @@ def meaninverse(ys):
 
 def cubicspline(x, y):
     return CubicSpline(x, y, bc_type='natural')
-
 
 def plotspline(f):
     

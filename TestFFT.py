@@ -9,17 +9,23 @@ import matplotlib.pyplot as plt
 # testifft = np.fft.ifft(testfft)
 # print(testifft)
 
-sound = RealSound.newread('flamenco.wav')
-sound.play()
-plt.plot(sound.ys)
-print("{},{}".format(sound.xs, sound.ys))
+sound = RealSound.sine(1, 10000, 22050, 10)
+
 fft = sound.fft()
-# print(fft.ys)
-ifft = fft.ifft()
-plt.plot(ifft.ys)
-print("{},{}".format(ifft.xs, ifft.ys))
-ifft.play()
-plt.legend()
+plt.plot(fft.ys)
+powerspectum = RealSound.PowerSpectrum(fft)
+amp = powerspectum.max()
+print(amp)
+
+sound2 = RealSound.sine(1, 10000, 88200, 10)
+fft2 = sound2.fft()
+plt.plot(fft2.ys)
+powerspectum2 = RealSound.PowerSpectrum(fft2)
+amp2 = powerspectum2.max()
+print(amp2)
+print("amp/amp2 = {}".format(amp/amp2))
+
+
 plt.show()
 
 
