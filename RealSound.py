@@ -41,6 +41,11 @@ class Sound:
         self.ys = ys
         self.xs = np.arange(0, len(ys)) / samplingfreq
 
+        if len(self.ys) % 2 == 1:
+
+            self.xs = self.xs[:-1]
+            self.ys = self.ys[:-1]
+
     def __len__(self) -> int:
         return len(self.ys)    
 
@@ -72,7 +77,9 @@ class FFT:
         self.samplingfreq = samplingfreq
         self.ys = ys
         samples = len(ys)
+        #TODO: arange??
         self.xs = np.linspace(0, samples/2, samples) * (samplingfreq/samples)
+        # self.xs = np.arange(0, samples/2) * (samplingfreq/samples)
     
     def __len__(self) -> int:
         return len(self.ys) 
@@ -81,7 +88,6 @@ class FFT:
         ys = np.fft.irfft(self.ys, axis=0)
         #TODO: what should the types be for sounds?! int or float?
 
-        
         return Sound(self.samplingfreq, ys)
     
     def plot(self) -> None:

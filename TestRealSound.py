@@ -15,21 +15,23 @@ class TestSound(unittest.TestCase):
         xs = np.arange(0, n) / samplingfreq
         ys = np.cos(3*xs)
         s = rs.Sound(samplingfreq, ys)
+        remainder = len(s) % 2
         self.assertEqual(samplingfreq, s.samplingfreq)
-        self.assertEqual(n, len(s))
-        self.assertIsNone(npt.assert_array_equal(ys, s.ys))
-        self.assertIsNone(npt.assert_array_equal(xs, s.xs))
+        self.assertEqual(0, remainder)
+        self.assertIsNone(npt.assert_array_equal(ys[:-1], s.ys))
+        self.assertIsNone(npt.assert_array_equal(xs[:-1], s.xs))
 
     def test_sine(self):
         duration = 2
         samplingfreq = 10
         frequency = 2
         amplitude = 4
-        n = int(samplingfreq*duration) + 1
+        n = int(samplingfreq*duration)
         ts = np.arange(0, n) / samplingfreq
         ys = amplitude*np.sin(2*np.pi*frequency*ts)
         s = rs.sine(duration, frequency, samplingfreq, amplitude)
-        self.assertEqual(n, len(s))
+        remainder = len(s.ys) % 2
+        self.assertEqual(0, remainder)
         self.assertEqual(samplingfreq, s.samplingfreq)
         self.assertEqual(n, len(s.xs))
         self.assertEqual(n, len(s.ys))
@@ -44,7 +46,7 @@ class TestSound(unittest.TestCase):
         samplingfreq = 11
         frequency = 7.2
         amplitude = 0.6
-        n = int(samplingfreq*duration) + 1
+        n = int(samplingfreq*duration)
         ts = np.arange(0, n) / samplingfreq
         ys = amplitude*np.sin(2*np.pi*frequency*ts)
         s = rs.sine(duration, frequency, samplingfreq, amplitude)
@@ -98,7 +100,7 @@ class TestSound(unittest.TestCase):
 class TestFFT(unittest.TestCase):
 
     def test_roundtrip(self):
-        duration = 0.5
+        duration = 2
         samplingfreq = 44100
         frequency1 = 5000
         frequency2 = 15000
@@ -106,6 +108,10 @@ class TestFFT(unittest.TestCase):
         s1 = rs.sine(duration, frequency1, samplingfreq, amplitude)
         s2 = rs.sine(duration, frequency2, samplingfreq, amplitude)
         s_in = rs.Sound(samplingfreq, s1.ys + s2.ys)
+
+        #TODO: Debug hack
+        # s_in.xs = s_in.xs[:-1]
+        # s_in.ys = s_in.ys[:-1]
 
         fft = s_in.fft()
 
