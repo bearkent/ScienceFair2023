@@ -28,22 +28,20 @@ def newread(file) -> 'Sound':
 
 
 def sine(duration: float, frequency: float, samplingfreq: int, amplitude: float) -> 'Sound':
-    xs = np.linspace(0, duration, duration*samplingfreq)
+    xs = np.linspace(0, duration, int(duration*samplingfreq))
     ys = amplitude*np.sin(xs*2*np.pi*frequency)
     return Sound(samplingfreq, ys)
 
 
 class Sound:
     
-    def __init__(self, samplingfreq: int, numpyarray: np.array):
-        
+    def __init__(self, samplingfreq: int, ys: np.array):
         self.samplingfreq = samplingfreq
-        self.numpyarray = numpyarray
+        self.ys = ys
 
         #TODO: is there a better option than linspace or arange -> arange(0,n)* step
-        self.xs = np.linspace(0, len(numpyarray)/samplingfreq, len(numpyarray))
-        self.ys = numpyarray
-        
+        self.xs = np.linspace(0, len(ys)/samplingfreq, len(ys))
+
     def __len__(self) -> int:
         return len(self.ys)    
 
