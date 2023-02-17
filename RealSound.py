@@ -1,58 +1,56 @@
+from typing import Callable
 import sounddevice as sd
 import numpy as np
-import pickle
-from wave import open
+# import pickle
+# from wave import open
 import matplotlib.pyplot as plt 
 from datetime import datetime
 import asyncio
 from scipy.interpolate import CubicSpline
-from fix import fix
+# from fix import fix
 from scipy.io.wavfile import read
-from os.path import dirname, join as pjoin
-from scipy.io.wavfile import write
+# from os.path import dirname, join as pjoin
+# from scipy.io.wavfile import write
+
+#TODO: document all code before the fair
 
 def record(duration: float, samplingfreq: int) -> 'Sound':
-    
     print("recording")
-    
+    #TODO: record to float or int???
     recording = sd.rec(int(duration * samplingfreq), samplerate=samplingfreq, channels=1, dtype=float)
     sd.wait()
-    
     return Sound(samplingfreq, recording)
 
-def read(file):
-    
+#TODO: rename
+def read(file) -> 'Sound':
     samplingfreq, ys = read(file)
     return Sound(samplingfreq, ys)
-    
+
 
 def sine(duration: float, frequency: float, samplingfreq: int, amplitude: float) -> 'Sound':
-
-    xs = np.linspace(0, duration, duration*samplingfreq)
-    
+    xs = np.linspace(0, duration, int(duration*samplingfreq))
     ys = amplitude*np.sin(xs*2*np.pi*frequency)
-        
     return Sound(samplingfreq, ys)
+
 
 class Sound:
     
-    def __init__(self, samplingfreq: int, numpyarray: np.array):
-        
+    def __init__(self, samplingfreq: int, ys: np.array):
         self.samplingfreq = samplingfreq
-        self.numpyarray = numpyarray
-        
-        self.xs = np.linspace(0, len(numpyarray)/samplingfreq, len(numpyarray))
-        self.ys = numpyarray
-        
+        self.ys = ys
+
+        #TODO: is there a better option than linspace or arange -> arange(0,n)* step
+        self.xs = np.linspace(0, len(ys)/samplingfreq, len(ys))
+
     def __len__(self) -> int:
         return len(self.ys)    
-        
+
+    #TODO: it seems like sound should have a write function
+
     def plot(self) -> None:
-        
         plt.plot(self.xs, self.ys)  
         
     def play(self) -> None:
-        
         print("playing audio\n")
         
         start_time = datetime.now()
@@ -68,63 +66,50 @@ class Sound:
         write(file, self.samplingfreq, self.ys)
 
     def fft(self) -> 'FFT':
-        return FFT(self.xs, self.ys, self.samplingfreq, False)
-                
-    
-class FFT:
-    
-    def __init__(self, xs, ys, samplingfreq, bypass):
+        ys = np.fft.rfft(self.ys, axis=0)
+        return FFT(self.samplingfreq, ys)
 
+
+class FFT:
+
+    def __init__(self, samplingfreq: int, ys: np.array):
         self.samplingfreq = samplingfreq
-        
-        self.samples = len(ys)
-        
-        if bypass == False:
-            
-            self.ys = np.fft.rfft(ys, axis=0)
-            
-        else:
-            
-            self.ys = ys
-        
-        self.xs = xs
-        self.xs = np.linspace(0, self.samples/2, int(self.samples/2)+1) * (self.samplingfreq/self.samples)
+        self.ys = ys
+        samples = len(ys)
+        self.xs = np.linspace(0, samples/2, int(samples/2)+1) * (samplingfreq/samples)
     
     def __len__(self) -> int:
         return len(self.ys) 
         
     def ifft(self) -> Sound:
-        
-        self.ys = np.fft.irfft(self.ys, axis=0)
+        ys = np.fft.irfft(self.ys, axis=0)
+        #TODO: what should the types be for sounds?! int or float?
         # self.ys = self.ys.astype(int)
         
-        return Sound(self.samplingfreq, self.ys)
+        return Sound(self.samplingfreq, ys)
     
     def plot(self) -> None:
-
         plt.plot(self.xs, self.ys)
-        fix()
-        
-    def multiply(self, f: np.array) -> 'FFT':
 
+    def multiply(self, f: Callable[[float],float]) -> 'FFT':
         newys = np.copy(self.ys)
-        
-        
+
         print('multiplying')
-        
+
+        #TODO: vectorize
         for i in range(0, int(len(self.ys)/2)):
-            
+            #TODO: (1) why is this filtering here?  It seems like if it doesn't work if it is missing, then something is wrong.
+            #TODO: (2) if the filtering is needed, why not put it inside the function to simplify the multiply?
+            #TODO: (3) in this more complex form, this is hard to test
             if self.xs[i] > 20000:
-                
                 newys[i] = self.ys[i]*f(self.xs[i])  
             
-        return FFT(self.xs, newys, self.samplingfreq, True)
+        return FFT(self.samplingfreq, newys)
     
 
 class PowerSpectrum:
     
     def __init__(self, fft: FFT):
-        self.fft = fft    
         self.xs = fft.xs
         self.ys = abs(fft.ys)^2
     
@@ -132,31 +117,34 @@ class PowerSpectrum:
         return len(self.ys) 
     
     def plot(self) -> None:
-        
         plt.plot(self.xs, self.ys) #y values on the graph are a function of the sampling frequency * amplitude / 2
-        fix()
-        
+
+    #TODO: what should this be doing?
     def max(self) -> float:
-        
         return np.max(self.ys)
 
+
+#TODO: better name?
 async def recordamps(startfreq, step, endfreq, samplingfreq):
     
     amps = []
     freqs = []
-    
+
+    #TODO: best not to reuse startfreq, since the meaning will be different from the name
     while startfreq <= endfreq:
         
         sinewave = sine(1, startfreq, samplingfreq, 1)
         
         returnvals = await asyncio.gather(
             asyncio.to_thread(Sound.play, sinewave),
+            #TODO: should make the sample time configurable
             asyncio.to_thread(record, 1, samplingfreq)
         )
         
-        fft = FFT(returnvals[1])
+        fft = returnvals[1].fft()
         powerspecturm = PowerSpectrum(fft)
-        # power spectrum is sq of amplitude??
+
+        #TODO: power spectrum is sq of amplitude??
         amp = powerspecturm.max()
         amps.append(amp)
         
@@ -167,12 +155,15 @@ async def recordamps(startfreq, step, endfreq, samplingfreq):
     amps = np.array(amps)
     freqs = np.array(freqs)
     vals = [freqs, amps]
+
+    #TODO: save is better as a different function that takes in a filename, so that you can easily run and save multiple tests
     np.save('TestValues1.npy', vals)
     
     return freqs, amps
 
+
 def meaninverse(ys):
-    
+    #TODO: I think there is an avg func
     sums = sum(ys)
     lengths = len(ys)
     mean = sums/lengths
@@ -182,8 +173,8 @@ def meaninverse(ys):
     
     return ys
 
+
 def cubicspline(x, y):
-    
     return CubicSpline(x, y, bc_type='natural')
 
 def plotspline(f):
@@ -192,4 +183,3 @@ def plotspline(f):
     y_new = f(x_new)
     
     plt.plot(x_new, y_new)
-    fix()
