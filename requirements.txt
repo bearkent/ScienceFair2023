@@ -1,5 +1,4 @@
 numpy
-#tensorflow==0.4.35
 imageai
 scipy
 matplotlib
@@ -8,10 +7,4 @@ aplay
 simpleaudio
 sounddevice
 datetime
-scipy
 soundfile
-pydub
-ffmpeg
-typing
-threading
-matlab
