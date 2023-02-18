@@ -118,19 +118,19 @@ class PowerSpectrum:
         plt.plot(self.xs, self.ys)
 
     #TODO: what should this be doing?
-    def max(self) -> float:
+    def max(self):
         i = np.argmax(self.ys)
         x = self.xs[i]
         y = self.ys[i]
         amp = y**0.5
 
-        return x, y, amp
+        return (x, y, amp)
 
 
 #TODO: better name?
 async def recordamps(testfreq, step, endfreq, samplingfreq, samplingtime):
     
-    amps = []
+    amps =[]
     freqs = []
 
     while testfreq <= endfreq:
@@ -142,11 +142,14 @@ async def recordamps(testfreq, step, endfreq, samplingfreq, samplingtime):
             asyncio.to_thread(record, samplingtime, samplingfreq)
         )
         
-        fft = returnvals[1].fft()
+        sound = returnvals[1]
+        fftys = np.fft.rfft(sound.ys)
+        fft = FFT(samplingfreq, fftys)
+        
         powerspecturm = PowerSpectrum(fft)
 
         vals = powerspecturm.max()
-        amps.append(vals[2])
+        amps.append(vals[2][0])
         
         freqs.append(testfreq)
         
@@ -157,7 +160,7 @@ async def recordamps(testfreq, step, endfreq, samplingfreq, samplingtime):
     vals = [freqs, amps]
 
     #TODO: save is better as a different function that takes in a filename, so that you can easily run and save multiple tests
-    np.save('TestValues1.npy', vals)
+    np.save('CallibrationValues1.npy', vals)
     
     return [freqs, amps]
 
@@ -183,3 +186,4 @@ def plotspline(f):
     y_new = f(x_new)
     
     plt.plot(x_new, y_new)
+    
