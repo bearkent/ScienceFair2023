@@ -160,7 +160,7 @@ async def recordamps(testfreq, step, endfreq, samplingfreq, samplingtime):
     vals = [freqs, amps]
 
     #TODO: save is better as a different function that takes in a filename, so that you can easily run and save multiple tests
-    np.save('CallibrationValues1.npy', vals)
+    np.save('CallibrationValues200.npy', vals)
     
     return [freqs, amps]
 
