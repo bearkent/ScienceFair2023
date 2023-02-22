@@ -160,8 +160,51 @@ async def recordamps(testfreq, step, endfreq, samplingfreq, samplingtime):
     vals = [freqs, amps]
 
     #TODO: save is better as a different function that takes in a filename, so that you can easily run and save multiple tests
-    np.save('CallibrationValues200.npy', vals)
+    np.save('CallibrationValues3.npy', vals)
     
+    return [freqs, amps]
+async def recordampsagain(testfreq, step, endfreq, samplingfreq, samplingtime, callibrationfile):
+    amps = []
+    freqs = []
+
+    vals = np.load(callibrationfile)
+    xs = np.array(vals[0])
+    ys = np.array(vals[1])
+    ys = meaninverse(ys)
+    f = cubicspline(xs, ys)
+    f2 = lambda x: 0.0 if x > 20000 else f(x)
+
+    while testfreq <= endfreq:
+
+        amp = f2(testfreq)
+
+        sinewave = sine(samplingtime, testfreq, samplingfreq, amp)
+
+        returnvals = await asyncio.gather(
+            asyncio.to_thread(Sound.play, sinewave),
+            asyncio.to_thread(record, samplingtime, samplingfreq)
+        )
+
+        sound = returnvals[1]
+        fftys = np.fft.rfft(sound.ys)
+        fft = FFT(samplingfreq, fftys)
+
+        powerspecturm = PowerSpectrum(fft)
+
+        vals = powerspecturm.max()
+        amps.append(vals[2][0])
+
+        freqs.append(testfreq)
+
+        testfreq += step
+
+    amps = np.array(amps)
+    freqs = np.array(freqs)
+    vals = [freqs, amps]
+
+    # TODO: save is better as a different function that takes in a filename, so that you can easily run and save multiple tests
+    np.save('FixedValues1.npy', vals)
+
     return [freqs, amps]
 
 
